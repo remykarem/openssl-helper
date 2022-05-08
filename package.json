@@ -1,0 +1,16 @@
+{
+  "name": "openssl-helper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cmdify": "^0.0.4",
+    "inquirer": "^8.2.4"
+  },
+  "type": "module"
+}
