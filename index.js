@@ -18,7 +18,7 @@ const trimmer = (str) =>
     .replace(/-----END PUBLIC KEY-----/, "")
     .replace(/(\r\n|\n|\r)/gm, "");
 
-const long2pem = () => {
+const convertLong2Pem = () => {
   inquirer
     .prompt([
       {
@@ -73,7 +73,7 @@ const long2pem = () => {
     });
 };
 
-const pem2long = () => {
+const convertPem2Long = () => {
   inquirer
     .prompt([
       {
@@ -220,7 +220,7 @@ const generateRsaKeyPair = () => {
   });
 };
 
-const pcks1ToPkcs8 = () => {
+const convertPcks1ToPkcs8 = () => {
   inquirer
     .prompt([
       {
@@ -232,6 +232,43 @@ const pcks1ToPkcs8 = () => {
         type: "input",
         name: "outputFilename",
         message: "Filename of PKCS #8 private key:",
+      },
+    ])
+    .then((answers) => {
+      const command = [
+        "pkcs8",
+        "-topk8",
+        "-inform",
+        "PEM",
+        "-in",
+        answers.inputFilename,
+        "-out",
+        answers.outputFilename,
+        "-nocrypt",
+      ];
+
+      const openssl = spawn(cmdify("openssl"), command);
+      openssl.stdout.on("data", (data) => {
+        console.log(data.toString());
+      });
+      openssl.stderr.on("data", (data) => {
+        console.log(data.toString());
+      });
+    });
+};
+
+const convertEncryptedPcks8ToPkcs8 = () => {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "inputFilename",
+        message: "Filename of encrypted PKCS #8 private key:",
+      },
+      {
+        type: "input",
+        name: "outputFilename",
+        message: "Filename of output PKCS #8 private key:",
       },
     ])
     .then((answers) => {
@@ -744,7 +781,7 @@ inquirer
       choices: [
         "Generate",
         "Verify",
-        "Encrypt/decrypt",
+        "Encrypt/decrypt file",
         "Convert",
         "Compare",
         "Base64-encode/decode",
@@ -775,6 +812,7 @@ inquirer
         "PEM to long format",
         "Long format to PEM",
         "PKCS #1 to PKCS #8",
+        "Encrypted PKCS #8 to PKCS #8",
       ],
       when(answers) {
         return answers.purpose === "Convert";
@@ -804,17 +842,19 @@ inquirer
       message: "Encrypt or decrypt?",
       choices: ["Encrypt", "Decrypt"],
       when(answers) {
-        return answers.purpose === "Encrypt/decrypt";
+        return answers.purpose === "Encrypt/decrypt file";
       },
     },
   ])
   .then((answers) => {
     if (answers.convert === "PEM to long format") {
-      pem2long();
+      convertPem2Long();
     } else if (answers.convert === "Long format to PEM") {
-      long2pem();
+      convertLong2Pem();
     } else if (answers.convert === "PKCS #1 to PKCS #8") {
-      pcks1ToPkcs8();
+      convertPcks1ToPkcs8();
+    } else if (answers.convert === "Encrypted PKCS #8 to PKCS #8") {
+      convertEncryptedPcks8ToPkcs8();
     } else if (answers.purpose === "Base64-encode/decode") {
       encodeDecode();
     } else if (answers.generate === "Certificate Signing Request") {
